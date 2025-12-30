@@ -1,1 +1,3 @@
 #List of files that Git should not track
+.terraform/
+.terraform.lock.hcl
