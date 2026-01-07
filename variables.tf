@@ -4,12 +4,12 @@ variable "region" {
 }
 
 variable "myIP" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "public_key" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -18,6 +18,6 @@ variable "instance_type" {
 }
 
 variable "web_count" {
-  type = number
+  type    = number
   default = 3
 }
