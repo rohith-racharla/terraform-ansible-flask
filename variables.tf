@@ -3,6 +3,11 @@ variable "region" {
   default = "us-east-1"
 }
 
+variable "az" {
+  type    = string
+  default = "us-east-1a"
+}
+
 variable "myIP" {
   type      = string
   sensitive = true
