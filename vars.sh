@@ -8,6 +8,7 @@ set -euo pipefail
 echo "$(date) Gathering required Terraform variables to generate terraform.tfvars file..."
 
 read -rp "AWS Region (e.g. us-east-1): " REGION
+read -rp "AWS Availability Zone (e.g. us-east-1a): " AZ
 read -rp "Instance type (t2.micro / t3.micro): " INSTANCE_TYPE
 
 MY_IP=$(curl -s https://api.ipify.org)
@@ -17,6 +18,7 @@ region        = "${REGION}"
 instance_type = "${INSTANCE_TYPE}"
 myIP          = "${MY_IP}/32"
 public_key    = "$(cat ~/.ssh/id_rsa.pub)"
+az            = "${AZ}"
 EOF
 
 echo "$(date) terraform.tfvars generated successfully"
