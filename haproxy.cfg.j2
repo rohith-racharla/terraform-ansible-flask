@@ -4,11 +4,6 @@
 # ============================================================
 
 # ------------------------------------------------------------
-# Include stats UI credentials (must be in same directory)
-# ------------------------------------------------------------
-#include uipassword
-
-# ------------------------------------------------------------
 # Global settings
 # ------------------------------------------------------------
 global
@@ -28,6 +23,13 @@ global
     # Secure SSL defaults (future HTTPS support)
     ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS
     ssl-default-bind-options no-sslv3
+
+userlist stats_users
+    user admin insecure-password admin123 #Replace this with a secure password
+    # Or multiple users:
+    # user viewer insecure-password ViewOnly123
+    # Or encrypted:
+    # user admin password $6$encrypted_hash_here
 
 # ------------------------------------------------------------
 # Default settings
@@ -65,9 +67,8 @@ backend backendnodes
     option forwardfor
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
-
-    # Health check
-    option httpchk HEAD / HTTP/1.1\r\nHost:localhost
+    option httpchk
+    http-check send meth HEAD uri / ver HTTP/1.1 hdr Host localhost
 
     {% for hosts in groups['webservers'] %}
     server {{ hosts }} {{ hostvars[hosts]["ansible_default_ipv4"]["address"] }}:5000 check
@@ -83,7 +84,5 @@ frontend haproxy_stats
     stats enable
     stats uri /stats
     stats refresh 1s
-    stats realm HAProxy\ Statistics
-
-    # Require authentication (password from uipassword file)
+    
     stats http-request auth unless { http_auth(stats_users) }
