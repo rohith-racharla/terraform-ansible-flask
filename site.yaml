@@ -1,11 +1,37 @@
 ---
-############################
-# PLAY 1: HAProxy Setup
-############################
-- name: Install and configure HAProxy
-  hosts: haproxy
+- hosts: webservers
   become: yes
+  gather_facts: yes
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
 
+    - name: Install Python3 and Gunicorn
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3-pip
+        - gunicorn
+
+    - name: Install Flask
+      pip:
+        name: flask
+        state: present
+
+    - name: Copy the Flask application code
+      copy:
+        src: ./app.py
+        dest: /home/ubuntu/app.py
+        owner: ubuntu
+        mode: '0644'
+
+    - name: Run Flask application using Gunicorn
+      shell: gunicorn -w 2 -D -b 0.0.0.0:5000 app:app
+
+- hosts: proxy
+  become: yes
   tasks:
     - name: Install HAProxy
       apt:
@@ -13,114 +39,21 @@
         state: present
         update_cache: yes
 
-    - name: Deploy HAProxy configuration
+    - name: Configure HAProxy
       template:
         src: haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
-        owner: root
-        group: root
-        mode: '0644'
-      notify: Restart HAProxy
+        validate: 'haproxy -c -f %s'
+      notify: restart haproxy
 
-  handlers:
-    - name: Restart HAProxy
+    - name: Ensure HAProxy is enabled and started
       service:
         name: haproxy
-        state: restarted
-
-
-############################
-# PLAY 2: Web Servers Setup
-############################
-- name: Install and configure Flask application
-  hosts: webservers
-  become: yes
-
-  vars:
-    app_user: ubuntu
-    app_dir: /home/ubuntu/flaskapp
-    venv_dir: /home/ubuntu/flaskapp/venv
-
-  tasks:
-    - name: Update package cache
-      apt:
-        update_cache: yes
-
-    - name: Install system dependencies
-      apt:
-        name:
-          - python3
-          - python3-pip
-          - python3-venv
-          - gunicorn
-        state: present
-
-    - name: Create application directory
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        owner: "{{ app_user }}"
-        mode: '0755'
-
-    - name: Copy Flask application
-      copy:
-        src: app.py
-        dest: "{{ app_dir }}/app.py"
-        owner: "{{ app_user }}"
-        mode: '0644'
-
-    - name: Create Python virtual environment
-      command: python3 -m venv "{{ venv_dir }}"
-      args:
-        creates: "{{ venv_dir }}/bin/activate"
-
-    - name: Install Flask inside virtualenv
-      pip:
-        name: flask
-        virtualenv: "{{ venv_dir }}"
-
-    - name: Create Gunicorn systemd service
-      copy:
-        dest: /etc/systemd/system/gunicorn.service
-        content: |
-          [Unit]
-          Description=Gunicorn Flask App
-          After=network.target
-
-          [Service]
-          User={{ app_user }}
-          WorkingDirectory={{ app_dir }}
-          ExecStart={{ venv_dir }}/bin/gunicorn \
-            --workers 2 \
-            --bind 0.0.0.0:5000 \
-            app:app
-
-          [Install]
-          WantedBy=multi-user.target
-      notify:
-        - Reload systemd
-        - Restart Gunicorn
-
-  handlers:
-    - name: Reload systemd
-      command: systemctl daemon-reexec
-
-    - name: Restart Gunicorn
-      service:
-        name: gunicorn
-        state: restarted
+        state: started
         enabled: yes
 
-
-############################
-# PLAY 3: Reload HAProxy
-############################
-- name: Reload HAProxy after backend changes
-  hosts: haproxy
-  become: yes
-
-  tasks:
-    - name: Restart HAProxy
+  handlers:
+    - name: restart haproxy
       service:
         name: haproxy
         state: restarted
