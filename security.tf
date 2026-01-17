@@ -49,6 +49,15 @@ resource "aws_vpc_security_group_ingress_rule" "allowHTTP" {
   ip_protocol       = "tcp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allowHTTPforStatsPage" {
+  security_group_id = aws_security_group.haproxy_sg.id
+  description       = "Allow HTTP traffic to HAProxy for accessing stats page"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 8011
+  to_port           = 8011
+  ip_protocol       = "tcp"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_sg_to_haproxy_sg" {
   security_group_id            = aws_security_group.haproxy_sg.id
   description                  = "Allow SSH access from Bastion host to HAProxy server"
