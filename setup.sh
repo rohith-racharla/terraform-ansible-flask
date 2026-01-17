@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#This script creates two files, namely sshconfig and uipassword
+#This script creates external ssh config file
 
 echo "$(date) Reading Terraform outputs"
 
@@ -62,11 +62,3 @@ Host web3
 EOF
 echo "$(date) SSH config file generated"
 chmod 600 sshconfig
-
-
-echo "$(date) Generating HAProxy UI password file"
-cat <<EOF > uipassword
-userlist stats_user
-    user admin insecure-password CHANGE_ME
-EOF
-chmod 600 uipassword
