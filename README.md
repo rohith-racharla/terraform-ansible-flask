@@ -51,10 +51,10 @@ Most importantly, you need an AWS account and an IAM identity (user or role) wit
 
 3. Clone the repository. Make sure you have Terraform, Ansible, and jq installed as mentioned in the requirements above.
 
-4. Run the command 'ssh-keygen -t rsa' to generate public-private SSH keypair. Do not give any name and do not enter
+4. Run the command 'ssh-keygen -t rsa' to generate public-private SSH keypair. Do not input any name and do not enter
    any passphrase. The keys will be saved in the default ~/.ssh directory.
 
-5. Make vars and setup scripts executable. To do this run 'chmod +x vars.sh setup.sh'.
+5. Make vars and setup scripts executable. To do this, run 'chmod +x vars.sh setup.sh'.
 
 6. Run 'terraform init' -->  Initializes provider plugins, modules (if any), and creates a lock file .terraform.lock.hcl
    to record the provider selections it made.
@@ -64,7 +64,7 @@ Most importantly, you need an AWS account and an IAM identity (user or role) wit
    Run 'terraform validate' --> Checks whether your configuration is syntactically valid and internally consistent
    before attempting to create an execution plan.
 
-   Run './vars.sh' to execute the vars script. The script will prompt you to enter the AWS Region, AWS Availability Zone, EC2 Instance type, and the web count i.e., the number of web servers that should be provisioned. The script then creates a file terraform.tfvars with all the variables you just inputted.
+   Run './vars.sh' to execute the vars script. The script will prompt you to enter the AWS Region, AWS Availability Zone, EC2 Instance type, and the web count i.e., the number of web servers that should be provisioned. The script then creates a file terraform.tfvars with all the variables you have inputted.
 
    Run 'terraform plan' --> Generates an execution plan showing exactly what actions Terraform will take to achieve the desired state specified in your configuration files.
 
@@ -72,7 +72,15 @@ Most importantly, you need an AWS account and an IAM identity (user or role) wit
    why not? You should see Apply complete! if everything goes well. Also, the outputs will be printed to stdout.
 
    Run './setup.sh' to execute the setup script. This script will read Terraform outputs and then generate an external
-   SSH config file for later use by Ansbile. It will also generate a file named uipassword that contains the login password for HAProxy stats page login by an administrator (not localhost). This file should be updated with a strong password for obvious reasons (security).
+   SSH config file for use by Ansbile.
 
 7. The next step is to run the Ansible playbook (site.yaml). Use the following command:
    ansible-playbook -i hosts site.yaml
+   
+   The playbook should run without any errors.
+
+
+You can now access your app by visiting http://<haproxy_public_ip>:80 on your browser.
+
+To access the HAProxy stats page visit http://<haproxy_public_ip>:8011/stats
+Pass in the username and password you have set in the haproxy configuration file to access HAProxy load balancer statistics.
